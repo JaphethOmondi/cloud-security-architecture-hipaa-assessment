@@ -1,0 +1,9 @@
+id,practice,status,evidence,gap,impact,recommendation
+P1,Data encryption at rest and in transit,partial,stated,"Cloud data is encrypted at rest and in transit, but cloud-stored backups are not encrypted.",A compromise of backup storage exposes unencrypted PHI and could constitute a reportable breach.,R3
+P2,Centralized key management,missing,stated,On-premises and cloud keys are managed in separate systems with no central control.,"Complicates rotation, revocation, and auditing of key use; raises key-exposure risk.",R2
+P3,Multi-factor authentication (MFA),missing,assumed,No MFA is described for cloud or on-premises access.,Stolen or guessed credentials alone grant access to ePHI (164.312(d) person/entity authentication).,R1
+P4,Principle of least privilege,partial,stated,"Roles are manually managed, with no deactivation lifecycle and no periodic access reviews.",Dormant and over-privileged accounts persist and widen the attack surface.,R8
+P5,"Automated monitoring, logging, and alerting",partial,stated,"Provider monitoring exists, but hybrid logs are not centralized.",Cross-environment attacks (e.g. on-prem to cloud lateral movement) go undetected; audit controls weakened.,R4
+P6,Network segmentation,partial,stated,"Cloud VMs are internet-exposed for admin (IP-restricted); on-prem firewalls are outdated, with no deep packet inspection.",Persistent exposed admin surface; encrypted threats pass the perimeter uninspected.,R6
+P7,Regular vulnerability assessments,missing,assumed,No vulnerability assessment program is described.,Unpatched systems and misconfigurations persist; weakens risk management under 164.308(a)(1).,R5
+P8,Documented and tested disaster recovery plans,partial,stated,"Backups exist, but IR/DR plans do not account for hybrid cloud risks and are not documented or tested.","Recovery may fail during a real incident, causing downtime and data loss (164.308(a)(7)).",R7

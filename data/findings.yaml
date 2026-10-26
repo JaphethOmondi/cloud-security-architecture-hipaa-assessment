@@ -1,0 +1,114 @@
+# Single source of truth for the assessment. Docs in /docs are generated from this file:
+#   python tools/assess.py
+# evidence: "stated"  = explicitly given in the lab scenario
+#           "assumed" = not in the scenario; inferred from absence (validate in a real engagement)
+
+meta:
+  title: Hybrid Cloud Security Architecture & HIPAA Assessment
+  author: Japheth Omondi
+  date: "2026-06-16"
+  scenario: Healthcare organization, hybrid cloud (on-premises + cloud provider) processing PHI
+
+shared_responsibility:
+  - component: Data Encryption
+    provider: Provides encryption-at-rest capabilities for cloud storage and TLS for data in transit across the provider network.
+    organization: Manages keys for on-premises and cloud; defines rotation policy; classifies data; verifies cloud backups are encrypted.
+  - component: Access Control
+    provider: Provides IAM tooling, RBAC frameworks, and APIs for provisioning.
+    organization: Defines and enforces roles; implements MFA; runs periodic access reviews; sets account lifecycle policy incl. deactivation.
+  - component: Monitoring and Incident Response
+    provider: Maintains cloud-native logging, infrastructure monitoring dashboards, and physical security event logging.
+    organization: Integrates hybrid logs into a central system; configures alerting; builds and tests IR plans covering hybrid-specific risks.
+  - component: Network Security
+    provider: Secures physical network layers and backbone routing; provides virtual isolation primitives (security groups, VPCs).
+    organization: Configures security group rules; segments on-prem from cloud; restricts admin access; upgrades on-prem firewalls.
+  - component: Backup and Recovery
+    provider: Offers automated backup services, geo-redundant storage, and backup infrastructure availability.
+    organization: Tests and documents DR plans; encrypts backups before storage; validates integrity; defines RTO/RPO.
+
+practices:
+  - id: P1
+    name: Data encryption at rest and in transit
+    status: partial
+    evidence: stated
+    recommendation: R3
+    gap: Cloud data is encrypted at rest and in transit, but cloud-stored backups are not encrypted.
+    impact: A compromise of backup storage exposes unencrypted PHI and could constitute a reportable breach.
+  - id: P2
+    name: Centralized key management
+    status: missing
+    evidence: stated
+    recommendation: R2
+    gap: On-premises and cloud keys are managed in separate systems with no central control.
+    impact: Complicates rotation, revocation, and auditing of key use; raises key-exposure risk.
+  - id: P3
+    name: Multi-factor authentication (MFA)
+    status: missing
+    evidence: assumed
+    recommendation: R1
+    gap: No MFA is described for cloud or on-premises access.
+    impact: Stolen or guessed credentials alone grant access to ePHI (164.312(d) person/entity authentication).
+  - id: P4
+    name: Principle of least privilege
+    status: partial
+    evidence: stated
+    recommendation: R8
+    gap: Roles are manually managed, with no deactivation lifecycle and no periodic access reviews.
+    impact: Dormant and over-privileged accounts persist and widen the attack surface.
+  - id: P5
+    name: Automated monitoring, logging, and alerting
+    status: partial
+    evidence: stated
+    recommendation: R4
+    gap: Provider monitoring exists, but hybrid logs are not centralized.
+    impact: Cross-environment attacks (e.g. on-prem to cloud lateral movement) go undetected; audit controls weakened.
+  - id: P6
+    name: Network segmentation
+    status: partial
+    evidence: stated
+    recommendation: R6
+    gap: Cloud VMs are internet-exposed for admin (IP-restricted); on-prem firewalls are outdated, with no deep packet inspection.
+    impact: Persistent exposed admin surface; encrypted threats pass the perimeter uninspected.
+  - id: P7
+    name: Regular vulnerability assessments
+    status: missing
+    evidence: assumed
+    recommendation: R5
+    gap: No vulnerability assessment program is described.
+    impact: Unpatched systems and misconfigurations persist; weakens risk management under 164.308(a)(1).
+  - id: P8
+    name: Documented and tested disaster recovery plans
+    status: partial
+    evidence: stated
+    recommendation: R7
+    gap: Backups exist, but IR/DR plans do not account for hybrid cloud risks and are not documented or tested.
+    impact: Recovery may fail during a real incident, causing downtime and data loss (164.308(a)(7)).
+
+hipaa:
+  - {type: Administrative, requirement: Security Management Process, cite: 164.308(a)(1), current: "No periodic access reviews, no account lifecycle policy, no documented risk analysis.", action: "Conduct formal risk analysis; document policies; implement access reviews and lifecycle policy.", evidence: assumed}
+  - {type: Administrative, requirement: Assigned Security Responsibility, cite: 164.308(a)(2), current: "Security duties appear informally distributed.", action: "Designate a Security Officer; document roles and accountability.", evidence: assumed}
+  - {type: Administrative, requirement: Workforce Security, cite: 164.308(a)(3), current: "Manual role management; no deactivation lifecycle; no access reviews.", action: "Automate provisioning/deprovisioning; quarterly reviews; role recertification.", evidence: stated}
+  - {type: Administrative, requirement: Information Access Management, cite: 164.308(a)(4), current: "PHI access not strictly role-governed; no MFA or central logging.", action: "MFA, minimum-necessary RBAC, centralized access auditing.", evidence: assumed}
+  - {type: Administrative, requirement: Security Awareness and Training, cite: 164.308(a)(5), current: "No training program described.", action: "Mandatory training with phishing simulation; document completion.", evidence: assumed}
+  - {type: Administrative, requirement: Security Incident Procedures, cite: 164.308(a)(6), current: "IR plans ignore hybrid cloud risks; no central logging.", action: "Update IR plans; integrate logs into SIEM; quarterly tabletop exercises.", evidence: stated}
+  - {type: Administrative, requirement: Contingency Plan, cite: 164.308(a)(7), current: "Backups unencrypted; DR plans undocumented and untested.", action: "Encrypt backups; document DR; define RTO/RPO; test annually.", evidence: stated}
+  - {type: Administrative, requirement: Evaluation, cite: 164.308(a)(8), current: "No periodic evaluations described.", action: "Recurring evaluation schedule with documented remediation.", evidence: assumed}
+  - {type: Physical, requirement: Facility Access Controls, cite: 164.310(a)(1), current: "Provider covers its data centers; on-prem physical security assumed org-managed.", action: "Verify on-prem physical access controls via periodic audits.", evidence: assumed}
+  - {type: Physical, requirement: Workstation Security, cite: 164.310(b), current: "Not described.", action: "Document policy; screen locks; local-storage encryption.", evidence: assumed}
+  - {type: Technical, requirement: Access Control, cite: 164.312(a), current: "Data encrypted but keys fragmented; no MFA.", action: "MFA; central KMS/HSM; automatic logoff.", evidence: stated}
+  - {type: Technical, requirement: Audit Controls, cite: 164.312(b), current: "Cloud logging not centralized or correlated with on-prem.", action: "Central SIEM; automated alerting; defined log retention.", evidence: stated}
+  - {type: Technical, requirement: Integrity, cite: 164.312(c)(1), current: "No ePHI integrity mechanisms described.", action: "File integrity monitoring; checksums/signatures; restrict write access.", evidence: assumed}
+  - {type: Technical, requirement: Person or Entity Authentication, cite: 164.312(d), current: "Single-factor credentials assumed.", action: "MFA; strong password policy; PAM for admins.", evidence: assumed}
+  - {type: Technical, requirement: Transmission Security, cite: 164.312(e), current: "TLS in cloud; on-prem transmission security not described.", action: "Verify TLS/IPsec on internal PHI traffic; retire vulnerable protocols.", evidence: stated}
+
+recommendations:
+  - {id: R1, title: "Implement MFA for all accounts", priority: Critical, target_days: 30, refs: "164.312(d)", rationale: "Prefer TOTP or hardware tokens over SMS; enforce via conditional access.", addresses: [P3]}
+  - {id: R3, title: "Encrypt all backups before cloud storage (AES-256)", priority: Critical, target_days: 30, refs: "164.312(a); 164.308(a)(7)", rationale: "Protects PHI even if storage credentials are compromised; keys managed in central KMS.", addresses: [P1]}
+  - {id: R2, title: "Centralize encryption key management (KMS/HSM)", priority: High, target_days: 60, refs: "164.312(a)", rationale: "Enables unified rotation, revocation, and key-usage audit trail.", addresses: [P2]}
+  - {id: R5, title: "Establish a vulnerability management program", priority: High, target_days: 60, refs: "164.308(a)(1)", rationale: "Quarterly scans, annual third-party pen test, patch SLAs (Critical 72h / High 7d / Medium 30d).", addresses: [P7]}
+  - {id: R4, title: "Deploy a centralized SIEM", priority: High, target_days: 90, refs: "164.312(b); 164.308(a)(6)", rationale: "Correlate hybrid logs; alert on anomalous access and exfiltration.", addresses: [P5]}
+  - {id: R6, title: "Upgrade on-prem firewalls (NGFW) and segment the network", priority: High, target_days: 90, refs: "164.312(a); 164.312(e)", rationale: "Isolate PHI systems; replace internet-exposed admin with bastion host or VPN.", addresses: [P6]}
+  - {id: R7, title: "Document and test hybrid DR plans", priority: Medium, target_days: 60, refs: "164.308(a)(7)", rationale: "Define RTO/RPO; quarterly tabletops; annual full recovery test.", addresses: [P8]}
+  - {id: R8, title: "Automate account lifecycle and access reviews (IGA)", priority: Medium, target_days: 90, refs: "164.308(a)(3); 164.308(a)(4)", rationale: "Quarterly attestation; auto-revoke dormant privileges.", addresses: [P4]}
+  - {id: R9, title: "Security awareness and training program", priority: Medium, target_days: 45, refs: "164.308(a)(5)", rationale: "Recurring training and phishing simulation; keep completion records for audits.", addresses: []}
+  - {id: R10, title: "File integrity monitoring on PHI systems", priority: Medium, target_days: 90, refs: "164.312(c)(1)", rationale: "Detect unauthorized change to ePHI and configs; feed alerts to the SIEM.", addresses: []}
